@@ -33,17 +33,6 @@ jobs:
           WITH_V: false
           DRY_RUN: true
 
-      - name: 'Get Previous tag'
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-
-      - name: Show tags dry run
-        run: |
-          echo "old: ${{ steps.tagger-dry.outputs.tag }}" \
-          echo "new: ${{ steps.tagger-dry.outputs.new_tag }}" \
-          echo "part: ${{ steps.tagger-dry.outputs.part }}" \
-          echo "prev tag ${{ steps.previoustag.outputs.tag }}"
-
       - name: Update tag version
         id: tagger
         uses: anothrNick/github-tag-action@v1
@@ -52,33 +41,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: false
 
-      - name: Show tags
-        run: |
-          echo "old: ${{ steps.tagger.outputs.tag }}" \
-          echo "new: ${{ steps.tagger.outputs.new_tag }}" \
-          echo "part: ${{ steps.tagger.outputs.part}}"
+      - name: Get current tag
+        id: current-tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
 
       - name: Checkout code
-        if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
+        if: ${{ steps.tagger.outputs.tag != steps.current-tag.outputs.tag }}
         uses: actions/checkout@v2
 
       - name: Set up QEMU
-        if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
+        if: ${{ steps.tagger.outputs.tag != steps.current-tag.outputs.tag }}
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
-        if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
+        if: ${{ steps.tagger.outputs.tag != steps.current-tag.outputs.tag }}
         uses: docker/setup-buildx-action@v1
 
       - name: Login to DockerHub
-        if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
+        if: ${{ steps.tagger.outputs.tag != steps.current-tag.outputs.tag }}
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push to DockerHub
-        if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
+        if: ${{ steps.tagger.outputs.tag != steps.current-tag.outputs.tag }}
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -86,7 +73,7 @@ jobs:
           tags: "dborovskiy00/nextjs:${{ steps.tagger.outputs.tag }}"
 
       - name: Trigger Workflow in ArgoCD Repository
-        if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
+        if: ${{ steps.tagger.outputs.tag != steps.current-tag.outputs.tag }}
         run: |
           repo_owner="${{ secrets.OWNER }}"
           repo_name="${{ secrets.ARGO_REPO_NAME }}"
