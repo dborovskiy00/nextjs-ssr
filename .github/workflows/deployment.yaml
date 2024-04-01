@@ -33,11 +33,16 @@ jobs:
           WITH_V: false
           DRY_RUN: true
 
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
       - name: Show tags dry run
         run: |
           echo "old: ${{ steps.tagger-dry.outputs.tag }}" \
           echo "new: ${{ steps.tagger-dry.outputs.new_tag }}" \
-          echo "part: ${{ steps.tagger-dry.outputs.part}}"    
+          echo "part: ${{ steps.tagger-dry.outputs.part }}" \
+          echo "prev tag ${{ steps.previoustag.outputs.tag }}"
 
       - name: Update tag version
         id: tagger
