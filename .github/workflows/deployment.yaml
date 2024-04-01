@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "old: ${{ steps.tagger-dry.outputs.tag }}" \
           echo "new: ${{ steps.tagger-dry.outputs.new_tag }}" \
-          echo "part: ${{ steps.tagger-dry.outputs.}}"    
+          echo "part: ${{ steps.tagger-dry.outputs.part}}"    
 
       - name: Update tag version
         id: tagger
@@ -51,7 +51,7 @@ jobs:
         run: |
           echo "old: ${{ steps.tagger.outputs.tag }}" \
           echo "new: ${{ steps.tagger.outputs.new_tag }}" \
-          echo "part: ${{ steps.tagger.outputs.}}"
+          echo "part: ${{ steps.tagger.outputs.part}}"
 
       - name: Checkout code
         if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
