@@ -1,15 +1,18 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+
+// eslint-disable-next-line
+type CustomAny = any;
 
 const DEFAULT_AXIOS_CONFIG = {
   timeout: 60000,
   headers: {
-    'content-type': 'application/json',
+    "content-type": "application/json",
   },
 };
 
 export type InterceptorTarget = AxiosRequestConfig | AxiosResponse;
 export type ResponseCallback<T> = (response: T) => T | Promise<T>;
-export type ErrorCallback = (error: any) => any;
+export type ErrorCallback = (error: CustomAny) => CustomAny;
 export interface Interceptor<T = InterceptorTarget> {
   getSuccessCallback: (instance: AxiosInstance) => ResponseCallback<T>;
   getErrorCallback: (instance: AxiosInstance) => ErrorCallback;
@@ -46,7 +49,7 @@ export class AxiosInstanceService {
 
       entries.forEach(([type, interceptorsByType]) => {
         this.axiosInstance.interceptors[type].use(
-          this.getResponseRequestCallBack<any>(interceptorsByType),
+          this.getResponseRequestCallBack<CustomAny>(interceptorsByType),
           this.getRejectRequestCallBack(interceptorsByType),
         );
       });
@@ -67,7 +70,7 @@ export class AxiosInstanceService {
   private static getRejectRequestCallBack<T>(
     interceptors: Interceptor<T>[],
   ): ErrorCallback {
-    return (error: any) =>
+    return (error: CustomAny) =>
       interceptors.reduce(
         async (result, interceptor) =>
           interceptor.getErrorCallback?.(this.axiosInstance)(await result),

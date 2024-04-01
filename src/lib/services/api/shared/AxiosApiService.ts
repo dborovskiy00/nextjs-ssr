@@ -1,9 +1,12 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
+import { AxiosInstance, AxiosResponse } from "axios";
 import {
   Interceptors,
   AxiosInstanceService,
   AxiosConfig,
-} from './AxiosInstanceService';
+} from "./AxiosInstanceService";
+
+// eslint-disable-next-line
+type CustomAny = any;
 
 type AxiosCallback<T> = () => Promise<AxiosResponse<T>>;
 
@@ -14,7 +17,7 @@ export class AxiosApiService {
     this.axiosInstance = AxiosInstanceService.create(config, interceptors);
   }
 
-  get<T = any>(path: string, config?: Partial<AxiosConfig>): Promise<T> {
+  get<T = CustomAny>(path: string, config?: Partial<AxiosConfig>): Promise<T> {
     return this.processRequest<T>(
       this.axiosInstance.get.bind(
         this.axiosInstance,
@@ -24,7 +27,7 @@ export class AxiosApiService {
     );
   }
 
-  delete<T = any>(
+  delete<T = CustomAny>(
     path: string,
     config?: Partial<AxiosConfig>,
   ): Promise<T> {
@@ -37,7 +40,7 @@ export class AxiosApiService {
     );
   }
 
-  post<T = any, D = any>(
+  post<T = CustomAny, D = CustomAny>(
     path: string,
     body?: D,
     config?: Partial<AxiosConfig>,
@@ -52,7 +55,7 @@ export class AxiosApiService {
     );
   }
 
-  put<T = any, D = any>(
+  put<T = CustomAny, D = CustomAny>(
     path: string,
     body?: D,
     config?: Partial<AxiosConfig>,
@@ -67,7 +70,7 @@ export class AxiosApiService {
     );
   }
 
-  patch<T = any, D = any>(
+  patch<T = CustomAny, D = CustomAny>(
     path: string,
     body?: D,
     config?: Partial<AxiosConfig>,
