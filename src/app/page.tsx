@@ -10,17 +10,11 @@ export default function Home() {
             Welcome to My Course Project
           </h1>
 
-          <h1>
-            {process.env.NEXT_PUBLIC_API_URL}
-          </h1>
+          <h1>{process.env.API_URL}</h1>
 
-          <h1>
-            {process.env.PORT}
-          </h1>
+          <h1>{process.env.PORT}</h1>
 
-          <h1>
-            {process.env.NODE_ENV}
-          </h1>
+          <h1>{process.env.NODE_ENV}</h1>
 
           <p className="mt-2 text-lg text-gray-600">
             This is my course project where I showcase my work and report.
