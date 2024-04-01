@@ -26,11 +26,18 @@ jobs:
           fetch-depth: '0'
 
       - name: Update Dry Run tag version
+        id: tagger-dry
         uses: anothrNick/github-tag-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: false
           DRY_RUN: true
+
+      - name: Show tags dry run
+        run: |
+          echo "old: ${{ steps.tagger-dry.outputs.tag }}" \
+          echo "new: ${{ steps.tagger-dry.outputs.new_tag }}" \
+          echo "part: ${{ steps.tagger-dry.outputs.}}"    
 
       - name: Update tag version
         id: tagger
@@ -43,7 +50,8 @@ jobs:
       - name: Show tags
         run: |
           echo "old: ${{ steps.tagger.outputs.tag }}" \
-          echo "new: ${{ steps.tagger.outputs.new_tag }}"
+          echo "new: ${{ steps.tagger.outputs.new_tag }}" \
+          echo "part: ${{ steps.tagger.outputs.}}"
 
       - name: Checkout code
         if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
