@@ -8,6 +8,8 @@ export default function Home() {
         <div className="text-center">
           <h1 className="text-3xl font-extrabold text-gray-900">
             Welcome to My Course Project
+
+            {process.env.NEXT_PUBLIC_API_URL}
           </h1>
 
           <p className="mt-2 text-lg text-gray-600">
