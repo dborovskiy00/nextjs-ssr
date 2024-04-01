@@ -40,6 +40,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: false
 
+      - name: Show tags
+        run: |
+          echo ${{ steps.tagger.outputs.tag }} |
+          echo ${{ steps.tagger.outputs.new_tag }}
+
       - name: Checkout code
         if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
         uses: actions/checkout@v2
