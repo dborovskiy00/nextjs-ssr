@@ -42,8 +42,8 @@ jobs:
 
       - name: Show tags
         run: |
-          echo ${{ steps.tagger.outputs.tag }} |
-          echo ${{ steps.tagger.outputs.new_tag }}
+          echo "old: ${{ steps.tagger.outputs.tag }}" \
+          echo "new: ${{ steps.tagger.outputs.new_tag }}"
 
       - name: Checkout code
         if: ${{ steps.tagger.outputs.tag != steps.tagger.outputs.new_tag }}
