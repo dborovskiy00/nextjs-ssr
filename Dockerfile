@@ -1,35 +1,33 @@
-FROM node:18-alpine AS deps
+# Install dependencies only when needed
+FROM node:18.18.0-alpine AS deps
 WORKDIR /app
-
 RUN apk add --no-cache libc6-compat
-COPY package.json package-lock.json* ./
+COPY package.json .
+RUN npm install
 
-RUN npm ci
-
-
-FROM node:18-alpine AS builder
+FROM node:18.18.0-alpine AS builder
 WORKDIR /app
-
 COPY --from=deps /app/node_modules ./node_modules
-
 COPY . .
-
 RUN npm run build
 
-
-FROM node:18-alpine AS runner
+FROM node:18.18.0-alpine AS runner
 WORKDIR /app
 
+RUN apk add --no-cache dumb-init bash
+
 ENV NODE_ENV production
-ENV API_URL production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+RUN chown -R nextjs:nodejs /app
 
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
+COPY --from=builder --chown=nextjs:nodejs /app/entrypoint.sh ./entrypoint.sh
+COPY --from=builder --chown=nextjs:nodejs /app/env.sh ./env.sh
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
@@ -39,6 +37,7 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-CMD ["node", "server.js"]
+RUN ["chmod", "+x", "./env.sh"]
+RUN ["chmod", "+x", "./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["dumb-init", "node", "server.js"]

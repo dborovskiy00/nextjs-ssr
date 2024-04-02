@@ -64,6 +64,11 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      - name: Add Environment variables
+        run: |
+          echo SERVER_ONLY_DATABASE_URL=${secrets.DATABASE_URL} >> .env \
+          echo NEXT_PUBLIC_API_URL=${secrets.API_URL} >> .env \
+
       - name: Build and push to DockerHub
         if: ${{ steps.tagger.outputs.tag == steps.current-tag.outputs.tag }}
         uses: docker/build-push-action@v2
