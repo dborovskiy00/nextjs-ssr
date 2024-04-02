@@ -66,8 +66,8 @@ jobs:
 
       - name: Add Environment variables
         run: |
-          echo "SERVER_ONLY_DATABASE_URL=${secrets.DATABASE_URL}" >> .env
-          echo "NEXT_PUBLIC_API_URL=${secrets.API_URL}" >> .env
+          echo "SERVER_ONLY_DATABASE_URL=${{ secrets.SERVER_ONLY_DATABASE_URL }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
 
       - name: Build and push to DockerHub
         if: ${{ steps.tagger.outputs.tag == steps.current-tag.outputs.tag }}
