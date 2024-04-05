@@ -21,7 +21,7 @@ export default function Home() {
 
         <div className="mt-2 bg-white rounded-xl shadow-lg p-4">
           <p className="text-lg text-gray-600">
-            123
+            Description
           </p>
         </div>
 
@@ -29,7 +29,7 @@ export default function Home() {
 
         <div className="mt-2 bg-white rounded-xl shadow-lg p-4">
           <p className="text-lg text-gray-600">
-            321
+            Report
           </p>
         </div>
 
