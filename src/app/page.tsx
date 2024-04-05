@@ -21,9 +21,7 @@ export default function Home() {
 
         <div className="mt-2 bg-white rounded-xl shadow-lg p-4">
           <p className="text-lg text-gray-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-            quis ullamcorper mauris. Sed fringilla leo a sem dapibus, ut
-            consequat purus fermentum.
+            123
           </p>
         </div>
 
@@ -31,9 +29,7 @@ export default function Home() {
 
         <div className="mt-2 bg-white rounded-xl shadow-lg p-4">
           <p className="text-lg text-gray-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-            quis ullamcorper mauris. Sed fringilla leo a sem dapibus, ut
-            consequat purus fermentum.
+            321
           </p>
         </div>
 
