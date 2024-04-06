@@ -1,21 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
 class UserDbService {
-  static getPrisma() {
-    let client;
-
-    try {
-      client = new PrismaClient();
-    } catch {
-      client = null;
-    }
-
-    return client;
-  }
-
   static async getAllUsers() {
-    const prisma = this.getPrisma();
-
     return prisma?.user
       ?.findMany()
       ?.then(() => [{}])
