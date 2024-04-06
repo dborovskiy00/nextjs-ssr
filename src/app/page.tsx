@@ -11,7 +11,7 @@ export default function Home() {
           </h1>
 
           <p className="mt-2 text-lg text-gray-600">
-            It:
+            It's my project
           </p>
         </div>
 
