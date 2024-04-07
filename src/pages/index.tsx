@@ -16,7 +16,7 @@ export default function Page({
       <div className="max-w-4xl mx-auto">
         <div className="text-center">
           <h1 className="text-3xl font-extrabold text-gray-900">
-            Welcome to My Course Project
+            Welcome to My Course Projectf
           </h1>
 
           <p className="mt-2 text-lg text-gray-600">Its my project</p>
