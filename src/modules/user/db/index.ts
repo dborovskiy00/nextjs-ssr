@@ -4,12 +4,8 @@ class UserDbService {
   static async getAllUsers() {
     return prisma?.user
       ?.findMany()
-      ?.then(() => [{}])
-      ?.catch((error) => {
-        console.log(error);
-
-        return [null];
-      });
+      ?.then((response) => response)
+      ?.catch(() => null);
   }
 }
 

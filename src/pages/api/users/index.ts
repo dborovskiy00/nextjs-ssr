@@ -6,7 +6,9 @@ export default async function handle(
   res: NextApiResponse,
 ) {
   try {
-    const result = await prisma.user.findMany();
+    const result = await prisma.user.findMany({
+      where: { email: "borovski.danila00@gmail.com" },
+    });
 
     return res.status(201).json(result);
   } catch (error) {
