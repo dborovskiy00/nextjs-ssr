@@ -5,7 +5,11 @@ class UserDbService {
     return prisma?.user
       ?.findMany()
       ?.then(() => [{}])
-      ?.catch(() => [null]);
+      ?.catch((error) => {
+        console.log(error);
+
+        return [null];
+      });
   }
 }
 
