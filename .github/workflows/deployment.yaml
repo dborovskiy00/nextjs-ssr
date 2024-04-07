@@ -45,13 +45,12 @@ jobs:
     needs: tag
     if: ${{ needs.tag.result == 'success' }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Get current tag
         id: current-tag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
-
-      - name: Checkout code
-        if: ${{ needs.tag.outputs.tagger.outputs.tag == steps.current-tag.outputs.tag }}
-        uses: actions/checkout@v2
 
       - name: Set up QEMU
         if: ${{ needs.tag.outputs.tagger.outputs.tag == steps.current-tag.outputs.tag }}
