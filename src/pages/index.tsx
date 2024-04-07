@@ -26,7 +26,7 @@ export default function Page({
           Project Overview
         </h2>
 
-        <div>{JSON.stringify(users)}</div>
+        <div>USERS: {JSON.stringify(users)}</div>
 
         <div className="mt-2 bg-white rounded-xl shadow-lg p-4">
           <p className="text-lg text-gray-600">Description</p>
