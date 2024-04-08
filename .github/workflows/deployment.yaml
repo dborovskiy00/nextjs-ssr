@@ -38,6 +38,7 @@ jobs:
   linters-and-tests:
     name: Linters and Tests
     runs-on: ubuntu-latest
+    needs: linters-and-tests
 
     steps:
       - name: Checkout code to update tag
