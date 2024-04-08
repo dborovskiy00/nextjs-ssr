@@ -1,0 +1,224 @@
+name: Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-type:
+        type: choice
+        description: Type of Release
+        options:
+          - major
+          - minor
+          - patch
+
+concurrency: production
+jobs:
+  next-version:
+    name: Dry Run Next Version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code to update tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+
+      - name: Update Dry Run tag version
+        id: tagger-dry
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: false
+          DRY_RUN: true
+
+      - name: Save Dry Run tag version
+        run: echo "${{ steps.tagger-dry.outputs.tag }}" > version.txt
+
+      - name: Upload version artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: version
+          path: version.txt
+
+  linters-and-tests:
+    name: Linters and Tests
+    runs-on: ubuntu-latest
+    needs: next-version
+
+    steps:
+      - name: Checkout code to update tag
+        uses: actions/checkout@v4
+
+      - name: Download versions artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+          path: temp
+
+      - name: Get version
+        id: version
+        run: echo "version=$(cat temp/version.txt)" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18.18
+
+      - name: Install Node.js dependencies
+        run: npm install
+
+      - name: Run Linters
+        run: npm run lint:warnings
+
+      - name: Notify status to Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notification_title: "Application Linters and Tests (${{ steps.version.outputs.version }})"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  tag:
+    name: Tagging
+    needs: linters-and-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code to update tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+
+      - name: Update tag version
+        id: tagger
+        uses: anothrNick/github-tag-action@v1
+        env:
+          DEFAULT_BUMP: ${{ github.event.inputs.release-type }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: false
+
+      - name: Download versions artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+          path: temp
+
+      - name: Get version
+        id: version
+        run: echo "version=$(cat temp/status.txt)" >> $GITHUB_OUTPUT
+
+      - name: Notify status to Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notification_title: "Application Tagging (${{ steps.tagger.outputs.tag }})"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  build:
+    name: Build and Push image
+    needs: tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+
+      - name: Get current tag
+        id: current-tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Add Environment variables
+        run: |
+          echo "SERVER_ONLY_DATABASE_URL=${{ secrets.SERVER_ONLY_DATABASE_URL }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+
+      - name: Build and push to DockerHub
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: "dborovskiy00/nextjs:${{ steps.current-tag.outputs.tag }}"
+
+      - name: Notify status to Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notification_title: "Application Build Image and Push to DockerHub (${{ steps.current-tag.outputs.tag }})"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  sync-helm-workflow:
+    name: Sync Helm workflow
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+
+      - name: Get current tag
+        id: current-tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+      - name: Trigger Workflow in Helm Repository
+        run: |
+          repo_owner="${{ secrets.OWNER }}"
+          event_type="trigger-workflow"
+          version="${{ steps.current-tag.outputs.tag }}"
+
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.PAT }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/dborovskiy00/${{ secrets.HELM_REPO_NAME }}/dispatches \
+            -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"version\": \"$version\", \"unit\": false, \"integration\": true}}"
+
+      - name: Notify status to Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notification_title: "Application Sync Helm workflow (${{ steps.current-tag.outputs.tag }})"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
