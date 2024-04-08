@@ -119,8 +119,12 @@ jobs:
           path: temp
 
       - name: Get status
+        id: job-status
+        run: echo "status=$(cat temp/status.txt)" >> $GITHUB_OUTPUT
+
+      - name: Send notification status
         id: status
-        run: cat temp/status.txt
+        run: echo ${{ steps.job-status.outputs.status }}
 
 #      - name: Notify to Slack
 #        uses: ravsamhq/notify-slack-action@v2
