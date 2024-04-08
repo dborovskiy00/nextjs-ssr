@@ -175,7 +175,7 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "Sync Helm workflow - {status_message}"
+          notification_title: "Application Sync Helm workflow - {status_message}"
           message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
