@@ -38,7 +38,7 @@ jobs:
         with:
           status: ${{ job.status }}
           notification_title: "Application Linters and Tests - {status_message}"
-          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
         env:
@@ -47,6 +47,8 @@ jobs:
   tag:
     name: Tagging
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code to update tag
@@ -77,7 +79,7 @@ jobs:
         with:
           status: ${{ job.status }}
           notification_title: "Application Tagging (${{ steps.tagger.outputs.tag }}) - {status_message}"
-          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
         env:
@@ -131,7 +133,7 @@ jobs:
         with:
           status: ${{ job.status }}
           notification_title: "Build Image and Push to DockerHub - {status_message}"
-          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
         env:
@@ -141,8 +143,6 @@ jobs:
     name: Sync Helm workflow
     needs: tag
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout code
@@ -175,7 +175,7 @@ jobs:
         with:
           status: ${{ job.status }}
           notification_title: "Sync Helm workflow - {status_message}"
-          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
         env:
