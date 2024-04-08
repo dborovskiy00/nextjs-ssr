@@ -19,7 +19,7 @@ export default function Page({
       <div className="max-w-4xl mx-auto">
         <div className="text-center">
           <h1 className="text-3xl font-extrabold text-gray-900">
-            Welcome to Project
+            Welcome to Course Project
           </h1>
         </div>
 
