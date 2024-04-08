@@ -46,6 +46,7 @@ jobs:
 
   tag:
     name: Tagging
+    needs: linters-and-tests
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -141,7 +142,7 @@ jobs:
 
   sync-helm-workflow:
     name: Sync Helm workflow
-    needs: tag
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
