@@ -48,7 +48,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout code to update tag
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
@@ -123,7 +123,7 @@ jobs:
           path: temp
 
       - name: Read job status from artifact
-        run: echo "Job status is $(cat temp/status.txt)"
+        run: echo "Job status is ${{ cat temp/status.txt }}"
 
 #      - name: Notify to Slack
 #        uses: ravsamhq/notify-slack-action@v2
