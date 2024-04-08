@@ -76,7 +76,7 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "Application Tagging - {status_message}"
+          notification_title: "Application Tagging (${{ steps.tagger.outputs.tag }}) - {status_message}"
           message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
