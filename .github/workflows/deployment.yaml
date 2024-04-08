@@ -58,7 +58,7 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(cat temp/status.txt)" >> $GITHUB_OUTPUT
+        run: echo "version=$(cat temp/version.txt)" >> $GITHUB_OUTPUT
 
       - name: Set up Node.js
         uses: actions/setup-node@v1
@@ -174,7 +174,7 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "Build Image and Push to DockerHub (${{ steps.current-tag.outputs.tag }})"
+          notification_title: "Application Build Image and Push to DockerHub (${{ steps.current-tag.outputs.tag }})"
           message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
