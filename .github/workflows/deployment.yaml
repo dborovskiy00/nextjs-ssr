@@ -33,7 +33,7 @@ jobs:
           DRY_RUN: true
 
       - name: Save Dry Run tag version
-        run: echo "${{ steps.tagger-dry.output.tag }}" > status.txt
+        run: echo "${{ steps.tagger-dry.output.tag }}" > version.txt
 
       - name: Upload version artifact
         uses: actions/upload-artifact@v2
