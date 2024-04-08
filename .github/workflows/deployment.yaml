@@ -15,6 +15,7 @@ concurrency: production
 jobs:
   next-version:
     name: Dry Run Next Version
+    runs-on: ubuntu-latest
 
     steps:
       - name: Update Dry Run tag version
