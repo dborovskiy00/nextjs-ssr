@@ -13,10 +13,40 @@ on:
 
 concurrency: production
 jobs:
-  tag:
+  linters-and-tests:
+    name: Linters and Tests
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
+    steps:
+      - name: Checkout code to update tag
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18.18
+
+      - name: Install Node.js dependencies
+        run: npm install
+
+      - name: Run Linters
+        run: npm run lint:warnings
+
+      - name: Notify status to Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notification_title: "Application Linters and Tests - {status_message}"
+          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  tag:
+    name: Tagging
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code to update tag
@@ -41,12 +71,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: false
 
-      - name: Notify Success to Slack
+      - name: Notify status to Slack
         uses: ravsamhq/notify-slack-action@v2
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "{workflow}-{job} has {status_message}"
+          notification_title: "Application Tagging - {status_message}"
           message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
@@ -54,6 +84,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   build:
+    name: Build and Push image
     needs: tag
     runs-on: ubuntu-latest
     permissions:
@@ -94,6 +125,36 @@ jobs:
           push: true
           tags: "dborovskiy00/nextjs:${{ steps.current-tag.outputs.tag }}"
 
+      - name: Notify status to Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notification_title: "Build Image and Push to DockerHub - {status_message}"
+          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  sync-helm-workflow:
+    name: Sync Helm workflow
+    needs: tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+
+      - name: Get current tag
+        id: current-tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
       - name: Trigger Workflow in Helm Repository
         run: |
           repo_owner="${{ secrets.OWNER }}"
@@ -108,12 +169,12 @@ jobs:
             https://api.github.com/repos/dborovskiy00/${{ secrets.HELM_REPO_NAME }}/dispatches \
             -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"version\": \"$version\", \"unit\": false, \"integration\": true}}"
 
-      - name: Notify Success to Slack
+      - name: Notify status to Slack
         uses: ravsamhq/notify-slack-action@v2
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "{workflow}-{job} has {status_message}"
+          notification_title: "Sync Helm workflow - {status_message}"
           message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
