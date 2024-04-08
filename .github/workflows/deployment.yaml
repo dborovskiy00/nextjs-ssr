@@ -75,10 +75,6 @@ jobs:
           echo "SERVER_ONLY_DATABASE_URL=${{ secrets.SERVER_ONLY_DATABASE_URL }}" >> .env
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
 
-      - name: Echo result
-        run: |
-          echo "dborovskiy00/nextjs:${{ steps.current-tag.outputs.tag }}"
-
       - name: Build and push to DockerHub
         uses: docker/build-push-action@v2
         with:
@@ -124,7 +120,7 @@ jobs:
 
       - name: Get status
         id: status
-        run: echo $(cat temp/status.txt)
+        run: cat temp/status.txt
 
 #      - name: Notify to Slack
 #        uses: ravsamhq/notify-slack-action@v2
