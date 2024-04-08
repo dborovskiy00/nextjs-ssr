@@ -41,6 +41,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: false
 
+      - name: Notify Success to Slack
+        uses: ravsamhq/notify-slack-action@v2
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notification_title: "{workflow}-{job} has {status_message}"
+          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: "success"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
   build:
     needs: tag
     runs-on: ubuntu-latest
@@ -96,44 +108,14 @@ jobs:
             https://api.github.com/repos/dborovskiy00/${{ secrets.HELM_REPO_NAME }}/dispatches \
             -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"version\": \"$version\", \"unit\": false, \"integration\": true}}"
 
-      - name: Save job status to file
+      - name: Notify Success to Slack
+        uses: ravsamhq/notify-slack-action@v2
         if: always()
-        run: echo "${{ job.status }}" > status.txt
-
-      - name: Upload job status artifact
-        if: always()
-        uses: actions/upload-artifact@v2
         with:
-          name: job-status
-          path: status.txt
-
-  notification:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    needs: [tag, build]
-    steps:
-      - name: Download job status artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: job-status
-          path: temp
-
-      - name: Get status
-        id: job-status
-        run: echo "status=$(cat temp/status.txt)" >> $GITHUB_OUTPUT
-
-      - name: Send notification status
-        id: status
-        run: echo ${{ steps.job-status.outputs.status }}
-
-#      - name: Notify to Slack
-#        uses: ravsamhq/notify-slack-action@v2
-#        if: always()
-#        with:
-#          status: ${{ job.status }}
-#          notification_title: "{workflow} has {status_message}"
-#          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
-#          footer: "Linked Repo <{repo_url}|{repo}>"
-#          notify_when: "failure"
-#        env:
-#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          notification_title: "{workflow}-{job} has {status_message}"
+          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+          footer: "Linked Repo <{repo_url}|{repo}>"
+          notify_when: "success"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
