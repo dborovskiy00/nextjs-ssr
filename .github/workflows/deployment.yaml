@@ -13,6 +13,27 @@ on:
 
 concurrency: production
 jobs:
+  next-version:
+    name: Dry Run Next Version
+
+    steps:
+      - name: Update Dry Run tag version
+        id: tagger-dry
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: false
+          DRY_RUN: true
+
+      - name: Save Dry Run tag version
+        run: echo "${{ steps.tagger-dry.output.tag }}" > status.txt
+
+      - name: Upload version artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: version
+          path: version.txt
+
   linters-and-tests:
     name: Linters and Tests
     runs-on: ubuntu-latest
@@ -20,6 +41,16 @@ jobs:
     steps:
       - name: Checkout code to update tag
         uses: actions/checkout@v4
+
+      - name: Download versions artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+          path: temp
+
+      - name: Get version
+        id: version
+        run: echo "version=$(cat temp/status.txt)" >> $GITHUB_OUTPUT
 
       - name: Set up Node.js
         uses: actions/setup-node@v1
@@ -37,7 +68,7 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "Application Linters and Tests - {status_message}"
+          notification_title: "Application Linters and Tests (${{ steps.version.outputs.version }})"
           message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
@@ -58,14 +89,6 @@ jobs:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: '0'
 
-      - name: Update Dry Run tag version
-        id: tagger-dry
-        uses: anothrNick/github-tag-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: false
-          DRY_RUN: true
-
       - name: Update tag version
         id: tagger
         uses: anothrNick/github-tag-action@v1
@@ -74,12 +97,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: false
 
+      - name: Download versions artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+          path: temp
+
+      - name: Get version
+        id: version
+        run: echo "version=$(cat temp/status.txt)" >> $GITHUB_OUTPUT
+
       - name: Notify status to Slack
         uses: ravsamhq/notify-slack-action@v2
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "Application Tagging (${{ steps.tagger.outputs.tag }}) - {status_message}"
+          notification_title: "Application Tagging (${{ steps.tagger.outputs.tag }})"
           message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
@@ -133,7 +166,7 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "Build Image and Push to DockerHub - {status_message}"
+          notification_title: "Build Image and Push to DockerHub (${{ steps.current-tag.outputs.tag }})"
           message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
@@ -175,7 +208,7 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          notification_title: "Application Sync Helm workflow - {status_message}"
+          notification_title: "Application Sync Helm workflow (${{ steps.current-tag.outputs.tag }})"
           message_format: "{emoji} *{job}* {status_message} in <{repo_url}|{repo}>"
           footer: "Linked Repo <{repo_url}|{repo}>"
           notify_when: ${{ job.status }}
