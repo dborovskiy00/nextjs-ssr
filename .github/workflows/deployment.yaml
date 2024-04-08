@@ -28,6 +28,7 @@ jobs:
         id: tagger-dry
         uses: anothrNick/github-tag-action@v1
         env:
+          DEFAULT_BUMP: ${{ github.event.inputs.release-type }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: false
           DRY_RUN: true
