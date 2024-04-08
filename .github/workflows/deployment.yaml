@@ -91,3 +91,42 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/dborovskiy00/${{ secrets.HELM_REPO_NAME }}/dispatches \
             -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"version\": \"$version\", \"unit\": false, \"integration\": true}}"
+
+      - name: Report Status
+        if: always()
+        uses: ravsamhq/notify-slack-action@v1
+        with:
+          status: ${{ job.status }}
+          notify_when: 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.ACTION_MONITORING_SLACK }}
+
+      - name: Upload job status artifact
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: job-status
+          path: status.txt
+
+  notification:
+    steps:
+      - name: Download job status artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: job-status
+          path: temp
+
+      - name: Read job status from artifact
+        run: echo "Job status is $(cat temp/status.txt)"
+
+#      - name: Notify to Slack
+#        uses: ravsamhq/notify-slack-action@v2
+#        if: always()
+#        with:
+#          status: ${{ job.status }}
+#          notification_title: "{workflow} has {status_message}"
+#          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
+#          footer: "Linked Repo <{repo_url}|{repo}>"
+#          notify_when: "failure"
+#        env:
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
